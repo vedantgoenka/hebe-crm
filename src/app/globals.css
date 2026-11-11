@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* HEBE palette: ledger green for structure, brass for progress and attention. */
+@theme {
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-ink: #17212b;
+  --color-muted: #5b6874;
+  --color-ledger: #1d4a3a;
+  --color-ledger-deep: #143528;
+  --color-brass: #a6781f;
+  --color-brass-soft: #f3e9d2;
+  --color-mist: #edf0f2;
+  --color-rule: #d5dadf;
+  --color-alert: #b42318;
+  --color-alert-soft: #fbe9e7;
+  --color-ok: #1e7a4f;
+  --color-ok-soft: #e3f2ea;
+}
+
+@layer base {
+  html { font-size: 15px; }
+  body { @apply bg-mist text-ink font-sans antialiased; }
+  :focus-visible { outline: 3px solid var(--color-brass); outline-offset: 2px; }
+  a { @apply text-ledger underline-offset-2 hover:underline; }
+}
+
+@layer components {
+  .input {
+    @apply block w-full rounded border border-[#b9c1c8] bg-white px-3 py-2 text-ink placeholder:text-muted/70;
+  }
+  .label { @apply mb-1 block text-sm font-semibold; }
+  .hint { @apply font-normal text-muted text-[0.82rem]; }
+  .panel { @apply rounded-lg border border-rule bg-white p-5; }
+  .table { @apply w-full border-collapse text-left; }
+  .table th { @apply border-b border-rule bg-[#f7f8f9] px-3 py-2 text-[0.82rem] font-semibold text-muted; }
+  .table td { @apply border-b border-rule px-3 py-2.5 align-top; }
+  .table tr:last-child td { @apply border-b-0; }
+}
+
+/* The journey line: where a lead stands between first contact and becoming a client. */
+.journey { counter-reset: step; }
+.journey li { position: relative; padding-top: 1.6rem; }
+.journey li::before { content: ""; position: absolute; top: .45rem; left: 0; right: 0; height: 2px; background: var(--color-rule); }
+.journey li::after { content: ""; position: absolute; top: 0; left: 0; width: 1rem; height: 1rem; border-radius: 9999px; background: #fff; border: 2px solid var(--color-rule); }
+.journey li[data-state="done"]::before { background: var(--color-brass); }
+.journey li[data-state="done"]::after { background: var(--color-brass); border-color: var(--color-brass); }
+.journey li[data-state="now"]::after { border: 4px solid var(--color-brass); }
+.journey li:last-child::before { right: auto; width: 1rem; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
