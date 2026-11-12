@@ -10,6 +10,7 @@ import { ActionForm, Submit } from "@/components/form";
 import { LinkButton } from "@/components/ui/button";
 import { Notice, PageHead } from "@/components/page-head";
 import { ActivityPanel } from "@/components/crm/activity-panel";
+import { LeadContact } from "@/components/crm/lead-contact";
 
 export const metadata: Metadata = { title: "Lead" };
 
@@ -74,8 +75,7 @@ export default async function LeadPage({ params, searchParams }: {
           <section className="panel">
             <h2 className="mb-3 text-lg font-semibold">Details</h2>
             <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5">
-              <dt className="text-muted">Phone</dt><dd>{lead.phone || "—"}</dd>
-              <dt className="text-muted">Email</dt><dd className="break-all">{lead.email || "—"}</dd>
+              <dt className="text-muted">Contact</dt><dd><LeadContact name={lead.name} companyName={lead.company_name} phone={lead.phone} email={lead.email} /></dd>
               <dt className="text-muted">Service</dt><dd>{service?.name ?? "Not sure yet"}</dd>
               <dt className="text-muted">Source</dt><dd>{label(LEAD_SOURCES, lead.source)}</dd>
               <dt className="text-muted">Referred by</dt><dd>{lead.referred_by || "—"}</dd>

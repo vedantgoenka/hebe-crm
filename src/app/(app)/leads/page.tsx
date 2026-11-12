@@ -9,6 +9,7 @@ import { LinkButton } from "@/components/ui/button";
 import { Tag } from "@/components/ui/tag";
 import { Notice, PageHead } from "@/components/page-head";
 import { Pager } from "@/components/pager";
+import { LeadContact } from "@/components/crm/lead-contact";
 
 export const metadata: Metadata = { title: "Leads" };
 const PAGE_SIZE = 25;
@@ -21,7 +22,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
 
   let query = supabase
     .from("leads")
-    .select("id, name, company_name, state, is_outside_bihar, source, status, next_follow_up_on, opportunity_reason, service:service_types(name), assignee:profiles!leads_assigned_to_fkey(full_name)", { count: "exact" })
+    .select("id, name, company_name, phone, email, state, is_outside_bihar, source, status, next_follow_up_on, opportunity_reason, service:service_types(name), assignee:profiles!leads_assigned_to_fkey(full_name)", { count: "exact" })
     .is("archived_at", null);
 
   const term = searchTerm(params.q);
@@ -55,7 +56,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
       <div className="overflow-x-auto rounded-lg border border-rule bg-white">
         <table className="table">
           <thead>
-            <tr><th>Name</th><th>Service</th><th>Source</th><th>Status</th><th>Assigned to</th><th>Call back</th></tr>
+            <tr><th>Name</th><th>Contact</th><th>Service</th><th>Source</th><th>Status</th><th>Assigned to</th><th>Call back</th></tr>
           </thead>
           <tbody>
             {leads?.length ? leads.map((l) => {
@@ -71,6 +72,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     </div>
                     {l.opportunity_reason && <div className="text-sm text-muted">{l.opportunity_reason}</div>}
                   </td>
+                  <td><LeadContact name={l.name} companyName={l.company_name} phone={l.phone} email={l.email} /></td>
                   <td>{service?.name ?? "—"}</td>
                   <td>{label(LEAD_SOURCES, l.source)}</td>
                   <td><Tag tone={l.status === "converted" ? "ok" : l.status === "lost" ? "alert" : "plain"}>{label(LEAD_STATUSES, l.status)}</Tag></td>
@@ -83,7 +85,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                 </tr>
               );
             }) : (
-              <tr><td colSpan={6} className="text-muted">No leads match. {staff.can("leads.manage") && <Link href="/leads/new">Add a lead.</Link>}</td></tr>
+              <tr><td colSpan={7} className="text-muted">No leads match. {staff.can("leads.manage") && <Link href="/leads/new">Add a lead.</Link>}</td></tr>
             )}
           </tbody>
         </table>
