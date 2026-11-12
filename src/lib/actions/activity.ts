@@ -6,10 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 import { dbError, formObject, invalid, type FormState } from "@/lib/forms";
 import { activitySchema, taskSchema } from "@/lib/validation";
 
-export type Subject = { kind: "lead" | "client"; id: number };
+export type Subject = { kind: "lead" | "client" | "project"; id: number };
 
 function pathFor(subject: Subject) {
-  return subject.kind === "lead" ? `/leads/${subject.id}` : `/clients/${subject.id}`;
+  if (subject.kind === "lead") return `/leads/${subject.id}`;
+  if (subject.kind === "client") return `/clients/${subject.id}`;
+  return `/projects/${subject.id}`;
 }
 
 export async function logActivity(subject: Subject, _: FormState, formData: FormData): Promise<FormState> {

@@ -8,7 +8,7 @@ import Link from "next/link";
 type Lead = {
   id: number; name: string; phone: string | null; email: string | null; company_name: string | null;
   city: string | null; state: string | null; source: string; referred_by: string | null;
-  service_type_id: number | null; requirement: string | null; status: string; lost_reason: string | null;
+  service_type_id: number | null; requirement: string | null; opportunity_reason: string | null; status: string; lost_reason: string | null;
   assigned_to: string | null; next_follow_up_on: string | null;
 };
 
@@ -36,6 +36,7 @@ export async function LeadForm({ lead, me }: { lead?: Lead; me: string }) {
           options={staffOptions(staff)} defaultValue={lead ? lead.assigned_to : me}
         />
         <TextArea name="requirement" label="What they want" hint="Industry, project size, land, loan, subsidy" defaultValue={lead?.requirement} className="sm:col-span-2" />
+        <TextField name="opportunity_reason" label="Opportunity reason" hint="e.g. SIPB rejected: DPR not uploaded" defaultValue={lead?.opportunity_reason} className="sm:col-span-2" />
         {lead?.status !== "converted" && (
           <SelectField name="status" label="Status" hint="To make them a client, use Convert on the lead page" options={statuses} defaultValue={lead?.status ?? "new"} />
         )}

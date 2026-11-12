@@ -17,11 +17,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <NavLink href="/" exact>My work</NavLink>
           {staff.can("leads.view") && <NavLink href="/leads">Leads</NavLink>}
           {staff.can("clients.view") && <NavLink href="/clients">Clients</NavLink>}
-          {staff.can("admin.users") && (
+          {(staff.can("admin.users") || staff.can("admin.settings")) && (
             <>
               <div className="hidden px-5 pb-1 pt-4 text-xs text-[#9db3a8] md:block">Admin</div>
-              <NavLink href="/admin/employees">Employees</NavLink>
-              <NavLink href="/admin/roles">Roles and permissions</NavLink>
+              {staff.can("admin.users") && <NavLink href="/admin/employees">Employees</NavLink>}
+              {staff.can("admin.users") && <NavLink href="/admin/roles">Roles and permissions</NavLink>}
+              {staff.can("admin.settings") && <NavLink href="/admin/stages">Stages and documents</NavLink>}
             </>
           )}
         </nav>

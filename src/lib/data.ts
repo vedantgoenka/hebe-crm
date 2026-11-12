@@ -16,6 +16,12 @@ export const getServiceTypes = cache(async () => {
   return data ?? [];
 });
 
+export const getStageTemplates = cache(async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.from("stage_templates").select("id, name, sort_order, is_active").order("sort_order");
+  return data ?? [];
+});
+
 export function staffOptions(staff: StaffOption[]) {
   return staff.map((s) => ({ value: s.id, label: s.full_name }));
 }

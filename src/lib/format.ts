@@ -34,3 +34,12 @@ export function greeting(): string {
   const hour = Number(new Date().toLocaleString("en-GB", { timeZone: IST, hour: "2-digit", hour12: false }));
   return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 }
+
+/** Indian currency in lakh/crore style, e.g. ₹12,50,000 or ₹1.25 Cr. */
+export function formatINR(amountInRupees: number): string {
+  const abs = Math.abs(amountInRupees);
+  const sign = amountInRupees < 0 ? "-" : "";
+  if (abs >= 1_00_00_000) return `${sign}₹${(abs / 1_00_00_000).toFixed(2)} Cr`;
+  if (abs >= 1_00_000) return `${sign}₹${(abs / 1_00_000).toFixed(2)} Lakh`;
+  return `${sign}₹${abs.toLocaleString("en-IN")}`;
+}

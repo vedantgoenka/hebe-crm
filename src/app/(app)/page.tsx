@@ -12,7 +12,7 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   const today = todayIST();
 
-  const [{ data: tasks }, { data: callbacks }] = await Promise.all([
+  const [{ data: tasks }, { data: callbacks }, { data: stageDeadlines }] = await Promise.all([
     supabase
       .from("tasks")
       .select("id, title, due_on, lead:leads(id, name), client:clients(id, name)")
@@ -31,9 +31,23 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
       .lte("next_follow_up_on", today)
       .order("next_follow_up_on")
       .limit(20),
+    staff.can("projects.view")
+      ? supabase
+          .from("project_stages")
+          .select("id, due_on, stage:stage_templates(name), project:projects!inner(id, title, assigned_to, archived_at)")
+          .is("archived_at", null)
+          .not("status", "in", "(done,not_needed)")
+          .not("due_on", "is", null)
+          .lte("due_on", todayIST(7))
+          .eq("project.assigned_to", staff.id)
+          .is("project.archived_at", null)
+          .order("due_on")
+          .limit(20)
+      : Promise.resolve({ data: null }),
   ]);
 
   const owner = staff.can("reports.view") ? await ownerFigures() : null;
+  const byStage = staff.isMasterAdmin ? await projectsByStage() : null;
   const firstName = staff.fullName.split(" ")[0];
 
   return (
@@ -117,10 +131,53 @@ export default async function MyWorkPage({ searchParams }: { searchParams: Promi
               </ul>
             )}
           </section>
+
+          {staff.can("projects.view") && (
+            <section className="panel">
+              <h2 className="mb-3 text-lg font-semibold">Stage deadlines</h2>
+              {!stageDeadlines?.length ? (
+                <p className="text-muted">No stage deadlines in the next 7 days.</p>
+              ) : (
+                <ul className="divide-y divide-rule">
+                  {stageDeadlines.map((s) => {
+                    const stage = s.stage as unknown as { name: string } | null;
+                    const project = s.project as unknown as { id: number; title: string };
+                    return (
+                      <li key={s.id} className="py-3">
+                        <Link href={`/projects/${project.id}`}>{project.title}</Link>
+                        <div className="text-sm text-muted">
+                          {stage?.name}, due{" "}
+                          <span className={isOverdue(s.due_on) ? "font-semibold text-alert" : ""}>
+                            {s.due_on === today ? "today" : formatDate(s.due_on)}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
         </div>
 
         {owner && (
           <div className="space-y-5">
+            {byStage && byStage.length > 0 && (
+              <section className="panel">
+                <h2 className="mb-3 text-lg font-semibold">Projects by stage</h2>
+                <table className="table">
+                  <tbody>
+                    {byStage.map(([stageName, count]) => (
+                      <tr key={stageName}>
+                        <td>{stageName}</td>
+                        <td className="text-right tabular-nums">{count}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </section>
+            )}
+
             <section className="panel">
               <h2 className="mb-3 text-lg font-semibold">Where leads came from (12 months)</h2>
               {!owner.bySource.length ? (
@@ -210,4 +267,17 @@ async function ownerFigures() {
     bySource: [...bySource.entries()].sort((a, b) => b[1] - a[1]),
     team,
   };
+}
+
+/** Counts, for every active project, the first stage that isn't done or not-needed. */
+async function projectsByStage(): Promise<[string, number][]> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("project_current_stage").select("stage_name, sort_order");
+
+  const counts = new Map<string, { count: number; sort: number }>();
+  for (const row of data ?? []) {
+    const prev = counts.get(row.stage_name) ?? { count: 0, sort: row.sort_order };
+    counts.set(row.stage_name, { count: prev.count + 1, sort: row.sort_order });
+  }
+  return [...counts.entries()].sort((a, b) => a[1].sort - b[1].sort).map(([name, v]) => [name, v.count]);
 }

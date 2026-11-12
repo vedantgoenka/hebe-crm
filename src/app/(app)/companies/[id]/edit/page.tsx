@@ -22,6 +22,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
   return (
     <>
       <PageHead title={`Edit ${company.name}`} sub={<>For client <Link href={`/clients/${client.id}`}>{client.name}</Link></>} />
+      <p className="mb-4 text-sm"><Link href={`/companies/${company.id}`}>Back to company</Link></p>
       <CompanyForm clientId={client.id} company={company} />
       {staff.can("data.delete") && (
         <ActionForm action={archiveCompany.bind(null, client.id, company.id)} confirm="Archive this company? It will disappear from lists but stay in the database." className="mt-4">

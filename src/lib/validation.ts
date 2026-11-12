@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { ACTIVITY_TYPES, CONSTITUTIONS, LEAD_SOURCES, LEAD_STATUSES, keys } from "@/lib/options";
-import { date, email, gstin, optionalId, pan, text, uuid } from "@/lib/forms";
+import { ACTIVITY_TYPES, CHECKLIST_STATUSES, CONSTITUTIONS, LEAD_SOURCES, LEAD_STATUSES, PERSON_ROLES, STAGE_STATUSES, keys } from "@/lib/options";
+import { date, email, gstin, id, optionalId, pan, text, uuid } from "@/lib/forms";
 import { ASSIGNABLE_PERMISSIONS } from "@/lib/permissions";
+
+/** An unchecked checkbox is simply absent from FormData (not just empty), so this must accept undefined, not only null. */
+const checkbox = z.string().nullable().optional().transform((v) => v === "1");
 
 const required = (what: string, max = 255) => z.string({ error: `Enter ${what}.` }).min(1, `Enter ${what}.`).max(max);
 
@@ -17,6 +20,7 @@ export const leadSchema = z
     referred_by: text(),
     service_type_id: optionalId,
     requirement: text(5000),
+    opportunity_reason: text(1000),
     // Left out of the form for converted leads, so their status can't be changed by an edit.
     status: z.enum(keys(LEAD_STATUSES)).refine((s) => s !== "converted", "Use “Convert to client” on the lead page.").optional(),
     lost_reason: text(),
@@ -98,3 +102,49 @@ export const passwordChangeSchema = z
     password_confirmation: z.string().nullable(),
   })
   .refine((d) => d.password === d.password_confirmation, { path: ["password_confirmation"], message: "The two passwords don't match." });
+
+export const projectSchema = z.object({
+  title: required("the project title"),
+  service_type_id: optionalId,
+  govt_reference_no: text(100).transform((v) => v?.toUpperCase() ?? null),
+  assigned_to: uuid,
+  start_date: date,
+  notes: text(5000),
+});
+
+export const personSchema = z.object({
+  full_name: required("the person's name"),
+  phone: text(20),
+  email,
+  note: text(2000),
+});
+
+export const companyPersonSchema = z.object({
+  role: z.enum(keys(PERSON_ROLES)),
+  is_primary: checkbox,
+});
+
+export const stageUpdateSchema = z.object({
+  status: z.enum(keys(STAGE_STATUSES)),
+  due_on: date,
+  completed_on: date,
+  note: text(1000),
+});
+
+export const checklistUpdateSchema = z.object({
+  status: z.enum(keys(CHECKLIST_STATUSES)),
+  note: text(1000),
+});
+
+export const stageTemplateSchema = z.object({
+  name: required("the stage name", 200),
+  sort_order: z.coerce.number().int(),
+  is_active: checkbox,
+});
+
+export const checklistItemSchema = z.object({
+  stage_template_id: id,
+  name: required("the document name", 200),
+  sort_order: z.coerce.number().int(),
+  is_active: checkbox,
+});

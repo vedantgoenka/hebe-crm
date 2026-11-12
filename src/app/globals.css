@@ -45,6 +45,8 @@
 .journey li[data-state="done"]::before { background: var(--color-brass); }
 .journey li[data-state="done"]::after { background: var(--color-brass); border-color: var(--color-brass); }
 .journey li[data-state="now"]::after { border: 4px solid var(--color-brass); }
+.journey li[data-state="skipped"] { color: var(--color-muted); }
+.journey li[data-state="skipped"]::after { background: var(--color-rule); border-color: var(--color-rule); }
 .journey li:last-child::before { right: auto; width: 1rem; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

@@ -21,7 +21,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
 
   let query = supabase
     .from("leads")
-    .select("id, name, company_name, state, is_outside_bihar, source, status, next_follow_up_on, service:service_types(name), assignee:profiles!leads_assigned_to_fkey(full_name)", { count: "exact" })
+    .select("id, name, company_name, state, is_outside_bihar, source, status, next_follow_up_on, opportunity_reason, service:service_types(name), assignee:profiles!leads_assigned_to_fkey(full_name)", { count: "exact" })
     .is("archived_at", null);
 
   const term = searchTerm(params.q);
@@ -69,6 +69,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     <div className="text-sm text-muted">
                       {l.company_name} {l.is_outside_bihar && <Tag tone="brass">{l.state}</Tag>}
                     </div>
+                    {l.opportunity_reason && <div className="text-sm text-muted">{l.opportunity_reason}</div>}
                   </td>
                   <td>{service?.name ?? "—"}</td>
                   <td>{label(LEAD_SOURCES, l.source)}</td>

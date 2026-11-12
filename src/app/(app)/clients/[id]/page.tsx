@@ -24,14 +24,14 @@ export default async function ClientPage({ params, searchParams }: {
 
   const { data: client } = await supabase
     .from("clients")
-    .select("*, owner:profiles!clients_relationship_owner_fkey(full_name), companies(id, name, constitution, gstin, district, industry, archived_at), origin:leads!leads_converted_client_id_fkey(id)")
+    .select("*, owner:profiles!clients_relationship_owner_fkey(full_name), companies(id, name, constitution, gstin, district, industry, archived_at, projects(id, archived_at)), origin:leads!leads_converted_client_id_fkey(id)")
     .eq("id", Number(id))
     .is("archived_at", null)
     .maybeSingle();
   if (!client) notFound();
 
   const owner = client.owner as { full_name: string } | null;
-  const companies = ((client.companies ?? []) as { id: number; name: string; constitution: string | null; gstin: string | null; district: string | null; industry: string | null; archived_at: string | null }[])
+  const companies = ((client.companies ?? []) as { id: number; name: string; constitution: string | null; gstin: string | null; district: string | null; industry: string | null; archived_at: string | null; projects: { id: number; archived_at: string | null }[] }[])
     .filter((c) => !c.archived_at)
     .sort((a, b) => a.name.localeCompare(b.name));
   const origin = (client.origin as { id: number }[] | null)?.[0];
@@ -63,14 +63,15 @@ export default async function ClientPage({ params, searchParams }: {
             ) : (
               <div className="overflow-x-auto">
                 <table className="table">
-                  <thead><tr><th>Company</th><th>Type</th><th>GSTIN</th><th>District</th><th /></tr></thead>
+                  <thead><tr><th>Company</th><th>Type</th><th>GSTIN</th><th>District</th><th className="text-right">Projects</th><th /></tr></thead>
                   <tbody>
                     {companies.map((c) => (
                       <tr key={c.id}>
-                        <td>{c.name}<div className="text-sm text-muted">{c.industry}</div></td>
+                        <td><Link href={`/companies/${c.id}`}>{c.name}</Link><div className="text-sm text-muted">{c.industry}</div></td>
                         <td>{label(CONSTITUTIONS, c.constitution)}</td>
                         <td>{c.gstin || "—"}</td>
                         <td>{c.district || "—"}</td>
+                        <td className="text-right tabular-nums">{c.projects.filter((p) => !p.archived_at).length}</td>
                         <td>{staff.can("clients.manage") && <Link href={`/companies/${c.id}/edit`}>Edit</Link>}</td>
                       </tr>
                     ))}
@@ -78,7 +79,6 @@ export default async function ClientPage({ params, searchParams }: {
                 </table>
               </div>
             )}
-            <p className="mt-3 text-sm text-muted">Projects for each company (DPR, loans, approvals, subsidies) arrive in Build 2.</p>
           </section>
 
           <ActivityPanel subject={{ kind: "client", id: client.id }} canManage={staff.can("clients.manage")} me={staff.id} />

@@ -24,7 +24,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
     .is("companies.archived_at", null);
 
   const term = searchTerm(params.q);
-  if (term) query = query.or(`name.ilike.${term},phone.ilike.${term},city.ilike.${term}`);
+  if (term) {
+    // Matches name/phone/city, or a project's government reference number — a join
+    // PostgREST's own .or() can't express, so it's done server-side in one RPC.
+    const { data: ids } = await supabase.rpc("search_client_ids", { p_term: term });
+    query = query.in("id", ids?.length ? ids : [-1]);
+  }
   if (params.outside) query = query.eq("is_outside_bihar", true);
 
   const { data: clients, count } = await query.order("name").range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
@@ -34,11 +39,12 @@ export default async function ClientsPage({ searchParams }: { searchParams: Prom
       {params.archived && <Notice>Client archived. The Master Admin can still see it.</Notice>}
       <PageHead title="Clients" sub={`${count ?? 0} ${count === 1 ? "client" : "clients"}`}>
         {staff.can("data.export") && <LinkButton variant="secondary" href="/clients/export" prefetch={false}>Export CSV</LinkButton>}
+        {staff.can("data.export") && <LinkButton variant="secondary" href="/people/export" prefetch={false}>Export contacts</LinkButton>}
         {staff.can("clients.manage") && <LinkButton href="/clients/new">Add client</LinkButton>}
       </PageHead>
 
       <form className="mb-4 flex flex-wrap items-center gap-3" action="/clients">
-        <input type="search" name="q" defaultValue={params.q} placeholder="Search name, phone or city" aria-label="Search clients" className="input max-w-72" />
+        <input type="search" name="q" defaultValue={params.q} placeholder="Search name, phone, city or project reference no." aria-label="Search clients" className="input max-w-72" />
         <label className="flex items-center gap-2"><input type="checkbox" name="outside" value="1" defaultChecked={Boolean(params.outside)} /> Outside Bihar only</label>
         <button className="cursor-pointer rounded border border-ledger bg-white px-4 py-2 font-semibold text-ledger" type="submit">Filter</button>
       </form>

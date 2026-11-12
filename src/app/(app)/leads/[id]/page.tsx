@@ -89,6 +89,12 @@ export default async function LeadPage({ params, searchParams }: {
                 <p className="whitespace-pre-line">{lead.requirement}</p>
               </>
             )}
+            {lead.opportunity_reason && (
+              <>
+                <h3 className="mb-1 mt-4 font-semibold">Opportunity reason</h3>
+                <p className="whitespace-pre-line">{lead.opportunity_reason}</p>
+              </>
+            )}
           </section>
           {staff.can("data.delete") && (
             <ActionForm action={archiveLead.bind(null, lead.id)} confirm="Archive this lead? It will disappear from lists but stay in the database.">

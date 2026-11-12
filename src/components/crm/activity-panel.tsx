@@ -11,7 +11,7 @@ import { formatDate, formatDateTime, isOverdue, nowLocalInputIST, todayIST } fro
 export async function ActivityPanel({ subject, canManage, me }: { subject: Subject; canManage: boolean; me: string }) {
   const supabase = await createClient();
   const column = `${subject.kind}_id`;
-  const path = subject.kind === "lead" ? `/leads/${subject.id}` : `/clients/${subject.id}`;
+  const path = subject.kind === "lead" ? `/leads/${subject.id}` : subject.kind === "client" ? `/clients/${subject.id}` : `/projects/${subject.id}`;
 
   const [{ data: tasks }, { data: activities }, staff] = await Promise.all([
     supabase.from("tasks").select("id, title, due_on, assignee:profiles!tasks_assigned_to_fkey(full_name)")

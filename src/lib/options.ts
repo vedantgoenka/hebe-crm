@@ -6,6 +6,8 @@ export const LEAD_SOURCES = {
   website: "Website",
   social_media: "Social media",
   bank: "Bank or partner",
+  biada_pcc: "BIADA PCC list",
+  sipb_list: "SIPB list",
   other: "Other",
 } as const;
 
@@ -37,8 +39,31 @@ export const CONSTITUTIONS = {
   other: "Other",
 } as const;
 
+export const PERSON_ROLES = {
+  promoter: "Promoter",
+  director: "Director",
+  partner: "Partner",
+  authorised_signatory: "Authorised signatory",
+  accountant: "Accountant",
+  other: "Other",
+} as const;
+
+export const STAGE_STATUSES = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  done: "Done",
+  not_needed: "Not needed",
+} as const;
+
+export const CHECKLIST_STATUSES = {
+  missing: "Missing",
+  received: "Received",
+  not_needed: "Not needed",
+} as const;
+
 export type LeadStatus = keyof typeof LEAD_STATUSES;
 export type LeadSource = keyof typeof LEAD_SOURCES;
+export type StageStatus = keyof typeof STAGE_STATUSES;
 
 export function label<T extends Record<string, string>>(map: T, key: string | null | undefined, fallback = "—"): string {
   return key && key in map ? map[key as keyof T] : fallback;
